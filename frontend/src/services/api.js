@@ -385,7 +385,7 @@ export const generateShareLink = async (patientId) => {
   return {
     success: true,
     token,
-    shareUrl: `http://localhost:5173/portal/${token}`
+    shareUrl: `${window.location.origin}/portal/${token}`
   };
 };
 
