@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/layout/Header';
-import { getHospitalStats, requestHospitalResources } from '../services/api';
-import { PhoneCall, Mail, MapPin, Building2, PlusCircle, Check, Bed, Stethoscope, Truck, Loader2 } from 'lucide-react';
+import { getHospitalStats, requestHospitalResources, updateHospitalRegistry } from '../services/api';
+import { PhoneCall, Mail, MapPin, Building2, PlusCircle, Check, Bed, Stethoscope, Truck, Loader2, Pencil, X } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
 
 export default function HelpCenter({ doctor = {}, onHospitalUpdate = () => {} }) {
   const location = useLocation();
@@ -14,6 +15,9 @@ export default function HelpCenter({ doctor = {}, onHospitalUpdate = () => {} })
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [isEditingRegistry, setIsEditingRegistry] = useState(false);
+  const [masterKey, setMasterKey] = useState('');
+  const [registryForm, setRegistryForm] = useState({ address: '', hotline: '', email: '' });
 
   useEffect(() => {
     if (location.state?.preselectResource) {
@@ -28,7 +32,32 @@ export default function HelpCenter({ doctor = {}, onHospitalUpdate = () => {} })
 
   useEffect(() => {
     fetchInfo();
+    const channel = supabase.channel('hospital-registry-realtime')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'hospital', filter: 'id=eq.1' }, (payload) => setHospitalInfo(payload.new))
+      .subscribe();
+    return () => supabase.removeChannel(channel);
   }, []);
+
+  const openRegistryEditor = () => {
+    setRegistryForm({ address: hospitalInfo?.address || '', hotline: hospitalInfo?.hotline || '', email: hospitalInfo?.email || '' });
+    setMasterKey('');
+    setIsEditingRegistry(true);
+  };
+
+  const handleRegistrySave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const updated = await updateHospitalRegistry({ masterKey, ...registryForm });
+      setHospitalInfo(updated);
+      setSuccessMsg('Hospital registry updated successfully.');
+      setIsEditingRegistry(false);
+    } catch (err) {
+      setSuccessMsg(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleResourceDemand = async (e) => {
     e.preventDefault();
@@ -78,10 +107,11 @@ export default function HelpCenter({ doctor = {}, onHospitalUpdate = () => {} })
             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
               <Building2 className="w-5 h-5" />
             </div>
-            <div>
+            <div className="flex-1">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">{hospitalInfo?.hospital_name || 'Mediczen Central Hospital'}</h3>
               <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Common Static Hospital Registry (Shared Database)</p>
             </div>
+            <button onClick={openRegistryEditor} className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100" title="Edit hospital registry"><Pencil className="w-4 h-4" /></button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
@@ -203,6 +233,18 @@ export default function HelpCenter({ doctor = {}, onHospitalUpdate = () => {} })
           </form>
         </div>
       </div>
+
+      {isEditingRegistry && (
+        <div className="light-theme-modal fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <form onSubmit={handleRegistrySave} className="bg-white dark:bg-[#111318] rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-[#1f2028] space-y-4">
+            <div className="flex items-center justify-between"><h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit Hospital Registry</h3><button type="button" onClick={() => setIsEditingRegistry(false)}><X className="w-5 h-5" /></button></div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Enter the master key to update shared hospital contact details.</p>
+            <input type="password" required value={masterKey} onChange={(e) => setMasterKey(e.target.value)} placeholder="Master key" className="w-full bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 text-sm" />
+            {['address', 'hotline', 'email'].map((field) => <input key={field} required value={registryForm[field]} onChange={(e) => setRegistryForm({ ...registryForm, [field]: e.target.value })} placeholder={field === 'hotline' ? 'Emergency phone number' : field === 'email' ? 'Hospital email' : 'Hospital address'} className="w-full bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3 text-sm" />)}
+            <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl">{loading ? 'Saving...' : 'Save Registry'}</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

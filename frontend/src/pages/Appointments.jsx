@@ -7,6 +7,7 @@ export default function Appointments({
   doctor = {},
   monthFilter = null,
   monthFilterLabel = '',
+  appointmentDateFilter = null,
   onResetMonthFilter = () => {}
 }) {
   const [appointments, setAppointments] = useState([]);
@@ -29,17 +30,18 @@ export default function Appointments({
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // Filter logic: if monthFilter is active (e.g. '2026-08'), filter by that month prefix
-  const activeAppointments = monthFilter
+  const activeAppointments = appointmentDateFilter
+    ? appointments.filter((a) => a.appointment_date === appointmentDateFilter.date)
+    : monthFilter
     ? appointments.filter((a) => a.appointment_date && a.appointment_date.startsWith(monthFilter))
     : appointments;
 
-  const todayAppointments = activeAppointments.filter(
+  const todayAppointments = appointmentDateFilter ? activeAppointments : activeAppointments.filter(
     (a) => a.appointment_date === todayStr || a.status === 'Today'
   );
 
-  const upcomingAppointments = activeAppointments.filter(
-    (a) => a.appointment_date !== todayStr && a.status !== 'Today'
+  const upcomingAppointments = appointmentDateFilter ? [] : activeAppointments.filter(
+    (a) => monthFilter || (a.appointment_date > todayStr && a.status !== 'Today')
   );
 
   return (
@@ -47,16 +49,16 @@ export default function Appointments({
       <Header doctor={doctor} searchVal={searchVal} setSearchVal={setSearchVal} />
 
       {/* Month Filter Active Banner */}
-      {monthFilter && (
+      {(monthFilter || appointmentDateFilter) && (
         <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 p-4 rounded-2xl mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <div>
               <h4 className="font-bold text-blue-900 dark:text-blue-200 text-sm">
-                Showing Filtered Appointments for {monthFilterLabel || monthFilter}
+                {appointmentDateFilter ? `Appointments for ${appointmentDateFilter.label}` : `Monthly Appointments for ${monthFilterLabel || monthFilter}`}
               </h4>
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Data hydrated from Supabase calendar month filter selection.
+                Data loaded from the selected calendar date or month.
               </p>
             </div>
           </div>
@@ -65,7 +67,7 @@ export default function Appointments({
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-colors shadow-sm"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset to Current Month</span>
+            <span>Revert to Today & Upcoming</span>
           </button>
         </div>
       )}
@@ -79,11 +81,11 @@ export default function Appointments({
 
       <div className="space-y-10">
         {/* Subsection 1: Today's Appointments */}
-        <div className="space-y-4">
+        <div className={`space-y-4 ${monthFilter ? 'hidden' : ''}`}>
           <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Today's Appointments ({todayAppointments.length})
+              {appointmentDateFilter ? `Appointments for ${appointmentDateFilter.label}` : "Today's Appointments"} ({todayAppointments.length})
             </h3>
           </div>
 
@@ -138,11 +140,11 @@ export default function Appointments({
         </div>
 
         {/* Subsection 2: Upcoming Appointments in This Month */}
-        <div className="space-y-4">
+        <div className={`space-y-4 ${appointmentDateFilter ? 'hidden' : ''}`}>
           <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Upcoming Appointments in This Month ({upcomingAppointments.length})
+              {monthFilter ? 'Monthly Appointments' : 'Upcoming Appointments in This Month'} ({upcomingAppointments.length})
             </h3>
           </div>
 

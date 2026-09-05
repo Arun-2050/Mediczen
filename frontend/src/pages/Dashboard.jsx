@@ -16,6 +16,7 @@ export default function Dashboard({
   activeSeconds = 22960,
   onLogout = () => {},
   onSelectMonthFilter = () => {},
+  onSelectAppointmentDate = () => {},
   hasUnreadAppointments = false,
   setHasUnreadAppointments = () => {}
 }) {
@@ -111,6 +112,7 @@ export default function Dashboard({
           <CalendarWidget
             appointments={appointments}
             onSelectMonthFilter={onSelectMonthFilter}
+            onSelectAppointmentDate={onSelectAppointmentDate}
           />
         </div>
       </div>

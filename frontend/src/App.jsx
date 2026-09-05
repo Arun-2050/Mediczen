@@ -27,6 +27,7 @@ export default function App() {
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [monthFilter, setMonthFilter] = useState(null);
   const [monthFilterLabel, setMonthFilterLabel] = useState('');
+  const [appointmentDateFilter, setAppointmentDateFilter] = useState(null);
   const [hasUnreadAppointments, setHasUnreadAppointments] = useState(true);
 
   const location = useLocation();
@@ -65,6 +66,13 @@ export default function App() {
   const handleSelectMonthFilter = (monthStr, monthLabel) => {
     setMonthFilter(monthStr);
     setMonthFilterLabel(monthLabel);
+    setAppointmentDateFilter(null);
+  };
+
+  const handleSelectAppointmentDate = (dateStr, dateLabel) => {
+    setAppointmentDateFilter({ date: dateStr, label: dateLabel });
+    setMonthFilter(null);
+    setMonthFilterLabel('');
   };
 
   const handleResetMonthFilter = () => {
@@ -102,6 +110,7 @@ export default function App() {
                 activeSeconds={activeSeconds}
                 onLogout={handleLogout}
                 onSelectMonthFilter={handleSelectMonthFilter}
+                onSelectAppointmentDate={handleSelectAppointmentDate}
                 hasUnreadAppointments={hasUnreadAppointments}
                 setHasUnreadAppointments={setHasUnreadAppointments}
               />
@@ -109,17 +118,7 @@ export default function App() {
           />
           <Route path="/patients" element={<Patients doctor={doctor} />} />
           <Route path="/schedules" element={<Schedules doctor={doctor} />} />
-          <Route
-            path="/appointments"
-            element={
-              <Appointments
-                doctor={doctor}
-                monthFilter={monthFilter}
-                monthFilterLabel={monthFilterLabel}
-                onResetMonthFilter={handleResetMonthFilter}
-              />
-            }
-          />
+          <Route path="/appointments" element={<Appointments doctor={doctor} monthFilter={monthFilter} monthFilterLabel={monthFilterLabel} appointmentDateFilter={appointmentDateFilter} onResetMonthFilter={() => { handleResetMonthFilter(); setAppointmentDateFilter(null); }} />} />
           <Route path="/billing" element={<Billing doctor={doctor} />} />
           <Route path="/help" element={<HelpCenter doctor={doctor} />} />
           <Route

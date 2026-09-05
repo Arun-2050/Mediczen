@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, CalendarCheck } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 
-export default function CalendarWidget({ appointments = [], onSelectMonthFilter = () => {} }) {
+export default function CalendarWidget({ appointments = [], onSelectMonthFilter = () => {}, onSelectAppointmentDate = () => {} }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const navigate = useNavigate();
@@ -33,6 +33,13 @@ export default function CalendarWidget({ appointments = [], onSelectMonthFilter 
     const monthStr = format(currentMonth, 'yyyy-MM');
     const monthLabel = format(currentMonth, 'MMMM yyyy');
     onSelectMonthFilter(monthStr, monthLabel);
+    navigate('/appointments');
+  };
+
+  const handleDateClick = (day) => {
+    if (!isSameMonth(day, currentMonth)) return;
+    setSelectedDate(day);
+    onSelectAppointmentDate(format(day, 'yyyy-MM-dd'), format(day, 'MMMM d, yyyy'));
     navigate('/appointments');
   };
 
@@ -98,7 +105,7 @@ export default function CalendarWidget({ appointments = [], onSelectMonthFilter 
             return (
               <div
                 key={idx}
-                onClick={() => isCurrent && setSelectedDate(dayItem)}
+                onClick={() => handleDateClick(dayItem)}
                 className={`flex flex-col items-center justify-center h-9 rounded-full cursor-pointer transition-all ${
                   !isCurrent
                     ? 'text-slate-300 dark:text-slate-600 pointer-events-none'

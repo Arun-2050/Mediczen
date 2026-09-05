@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { addDays, format, startOfMonth } from 'date-fns';
 
 export default function ScheduleTimeline({ schedules = [] }) {
   const [selectedWeek, setSelectedWeek] = useState('Week 1 (Days 1-7)');
   const [showWeekDropdown, setShowWeekDropdown] = useState(false);
 
-  const hours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
   const weeks = [
     'Week 1 (Days 1-7)',
     'Week 2 (Days 7-14)',
     'Week 3 (Days 14-21)',
     'Week 4 (Days 21-28)'
   ];
+  const weekIndex = weeks.indexOf(selectedWeek);
+  const weekDays = useMemo(() => {
+    const firstDay = addDays(startOfMonth(new Date()), weekIndex * 7);
+    return Array.from({ length: 7 }, (_, index) => addDays(firstDay, index));
+  }, [weekIndex]);
+  const visibleSchedules = schedules.filter((schedule) => {
+    const date = schedule.schedule_date || schedule.date;
+    return date && weekDays.some((day) => format(day, 'yyyy-MM-dd') === date);
+  });
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/80 shadow-sm mt-8">
@@ -61,42 +70,25 @@ export default function ScheduleTimeline({ schedules = [] }) {
           {/* Hours Header Row */}
           <div className="grid grid-cols-[80px_repeat(8,1fr)] border-b border-slate-100 dark:border-slate-700 pb-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 text-center">
             <div></div>
-            {hours.map((h) => (
-              <div key={h}>{h}</div>
-            ))}
+            <div className="col-span-8 text-left">Selected dates and tasks</div>
           </div>
 
-          {/* Monday Row */}
-          <div className="grid grid-cols-[80px_repeat(8,1fr)] items-center py-4 border-b border-slate-50 dark:border-slate-700/50 text-xs">
-            <div className="font-bold text-slate-400 dark:text-slate-500 text-center">Mon</div>
-            <div className="col-span-8 grid grid-cols-8 gap-2 relative h-10 items-center">
-              <div className="col-start-2 col-span-2 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-xl px-3 py-2 font-bold text-[11px] flex items-center justify-center shadow-sm">
-                Check up patient
+          {weekDays.map((day) => {
+            const dayKey = format(day, 'yyyy-MM-dd');
+            const daySchedules = visibleSchedules.filter((schedule) => (schedule.schedule_date || schedule.date) === dayKey);
+            return (
+              <div key={dayKey} className="grid grid-cols-[120px_1fr] items-start gap-4 py-4 border-b border-slate-50 dark:border-slate-700/50 text-xs">
+                <div className="font-bold text-slate-500 dark:text-slate-400">{format(day, 'EEE, MMM d')}</div>
+                <div className="flex flex-wrap gap-2">
+                  {daySchedules.length ? daySchedules.map((schedule) => (
+                    <div key={schedule.id} className="bg-blue-100 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 rounded-xl px-3 py-2 font-bold text-[11px] shadow-sm">
+                      {schedule.start_time} - {schedule.end_time} {schedule.title}
+                    </div>
+                  )) : <span className="text-slate-300 dark:text-slate-600 italic">No tasks scheduled</span>}
+                </div>
               </div>
-              <div className="col-start-4 col-span-1 bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300 rounded-xl px-2 py-2 font-bold text-[11px] flex items-center justify-center shadow-sm whitespace-nowrap">
-                Lunch Break
-              </div>
-              <div className="col-start-5 col-span-3 bg-blue-100 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 rounded-xl px-3 py-2 font-bold text-[11px] flex items-center justify-center shadow-sm">
-                Heart Surgery
-              </div>
-            </div>
-          </div>
-
-          {/* Tuesday Row */}
-          <div className="grid grid-cols-[80px_repeat(8,1fr)] items-center py-4 border-b border-slate-50 dark:border-slate-700/50 text-xs">
-            <div className="font-bold text-slate-400 dark:text-slate-500 text-center">Tue</div>
-            <div className="col-span-8 grid grid-cols-8 gap-2 relative h-10 items-center">
-              <div className="col-start-2 col-span-2 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-xl px-3 py-2 font-bold text-[11px] flex items-center justify-center shadow-sm">
-                Check up patient
-              </div>
-              <div className="col-start-4 col-span-1 bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300 rounded-xl px-2 py-2 font-bold text-[11px] flex items-center justify-center shadow-sm whitespace-nowrap">
-                Lunch Break
-              </div>
-              <div className="col-start-5 col-span-2 bg-indigo-100 dark:bg-indigo-950/60 border border-indigo-300 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300 rounded-xl px-3 py-2 font-bold text-[11px] flex items-center justify-center shadow-sm">
-                Evaluation
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>

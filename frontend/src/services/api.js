@@ -104,6 +104,18 @@ export const getHospitalStats = async () => {
   };
 };
 
+export const updateHospitalRegistry = async ({ masterKey, address, hotline, email }) => {
+  if (masterKey !== '@admin7') throw new Error('Invalid master key.');
+  const { data, error } = await supabase
+    .from('hospital')
+    .update({ address, hotline, email })
+    .eq('id', 1)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+};
+
 export const requestHospitalResources = async ({ doctorId, doctorName, resourceType, quantity, notes }) => {
   try {
     await supabase.from('help_requests').insert([{
@@ -284,7 +296,6 @@ export const createSchedule = async (scheduleData) => {
     doctor_id: doctorId,
     title: scheduleData.title || 'Clinical Task',
     schedule_date: scheduleData.schedule_date || new Date().toISOString().split('T')[0],
-    day: scheduleData.day || 'Mon',
     start_time: scheduleData.start_time || '10:00',
     end_time: scheduleData.end_time || '11:00',
     type: scheduleData.type || 'Checkup'
@@ -297,6 +308,17 @@ export const createSchedule = async (scheduleData) => {
     console.error('Create schedule error:', err);
   }
   return newSchedule;
+};
+
+export const deleteSchedule = async (scheduleId) => {
+  try {
+    const doctorId = requireDoctorId();
+    await supabase.from('schedules').delete().eq('id', scheduleId).eq('doctor_id', doctorId);
+    return true;
+  } catch (err) {
+    console.error('Delete schedule error:', err);
+    return false;
+  }
 };
 
 // --- INVOICES / BILLING API ---
@@ -343,6 +365,23 @@ export const deleteInvoice = async (invoiceId) => {
     console.error('Delete invoice error:', err);
     return false;
   }
+};
+
+export const updateInvoice = async (invoiceId, updates) => {
+  try {
+    const doctorId = requireDoctorId();
+    const { data, error } = await supabase
+      .from('invoices')
+      .update(updates)
+      .eq('id', invoiceId)
+      .eq('doctor_id', doctorId)
+      .select()
+      .single();
+    if (!error && data) return data;
+  } catch (err) {
+    console.error('Update invoice error:', err);
+  }
+  return updates;
 };
 
 // --- AI DIAGNOSIS & SHARE PORTAL ---

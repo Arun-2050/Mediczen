@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
-import { getInvoices, createInvoice, deleteInvoice } from '../services/api';
+import { getInvoices, createInvoice, deleteInvoice, updateInvoice } from '../services/api';
 import { supabase } from '../services/supabaseClient';
-import { Receipt, Plus, X, Loader2, Trash2, Search } from 'lucide-react';
+import { Receipt, Plus, X, Loader2, Trash2, Search, Pencil } from 'lucide-react';
 
 export default function Billing({ doctor = {} }) {
   const [invoices, setInvoices] = useState([]);
@@ -13,6 +13,7 @@ export default function Billing({ doctor = {} }) {
   const [description, setDescription] = useState('Doctor Clinical Consultation Fee');
   const [amount, setAmount] = useState('250.00');
   const [loading, setLoading] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
 
   const fetchInvoices = async () => {
     const data = await getInvoices();
@@ -36,23 +37,31 @@ export default function Billing({ doctor = {} }) {
     await fetchInvoices();
   };
 
-  const handleCreateInvoice = async (e) => {
+  const openEditInvoice = (invoice) => {
+    setEditingInvoice(invoice);
+    setPatientName(invoice.patient_name || '');
+    setWardNo(invoice.ward_no || '');
+    setDescription(invoice.items?.[0]?.description || 'Medical Service');
+    setAmount(String(invoice.total_amount || '0'));
+    setIsCreateOpen(true);
+  };
+
+  const handleSaveInvoice = async (e) => {
     e.preventDefault();
-    if (!patientName) return;
     setLoading(true);
     try {
-      await createInvoice({
+      const payload = {
         patient_name: patientName,
         ward_no: wardNo,
         items: [{ description, qty: 1, price: parseFloat(amount) }],
-        total_amount: parseFloat(amount),
-        status: 'Pending'
-      });
+        total_amount: parseFloat(amount)
+      };
+      if (editingInvoice) await updateInvoice(editingInvoice.id, payload);
+      else await createInvoice({ ...payload, status: 'Pending' });
       await fetchInvoices();
       setIsCreateOpen(false);
+      setEditingInvoice(null);
       setPatientName('');
-    } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -112,7 +121,7 @@ export default function Billing({ doctor = {} }) {
                 <th className="pb-3">Due Date</th>
                 <th className="pb-3">Amount</th>
                 <th className="pb-3">Status</th>
-                <th className="pb-3 text-right">Delete</th>
+                <th className="pb-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-[#1f2028] font-medium text-slate-700 dark:text-[#a1a1aa]">
@@ -134,18 +143,18 @@ export default function Billing({ doctor = {} }) {
                     </span>
                   </td>
                   <td className="py-4 text-right">
-                    {inv.status === 'Paid' ? (
+                    <div className="flex justify-end gap-2">
+                      <button onClick={() => openEditInvoice(inv)} className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 hover:bg-amber-100 transition-colors" title="Edit Invoice">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
                       <button
                         onClick={() => handleDeleteInvoice(inv.id)}
                         className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 transition-colors inline-flex items-center gap-1 text-[11px] font-bold"
                         title="Delete Invoice"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete</span>
                       </button>
-                    ) : (
-                      <span className="text-slate-300 dark:text-[#27272a] font-mono text-[10px]">—</span>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -175,12 +184,12 @@ export default function Billing({ doctor = {} }) {
                   <p className="text-xs text-slate-400 dark:text-[#71717a] font-medium">Generate medical bill saved to Supabase</p>
                 </div>
               </div>
-              <button onClick={() => setIsCreateOpen(false)} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white">
+              <button onClick={() => { setIsCreateOpen(false); setEditingInvoice(null); }} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateInvoice} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveInvoice} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 dark:text-[#a1a1aa] uppercase mb-1">Patient Name</label>
                 <input

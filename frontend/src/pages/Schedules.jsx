@@ -3,8 +3,7 @@ import Header from '../components/layout/Header';
 import { getSchedules, createSchedule } from '../services/api';
 import { supabase } from '../services/supabaseClient';
 import { Plus, X, Clock, CalendarDays, CheckSquare2, Trash2 } from 'lucide-react';
-
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+import { addDays, format } from 'date-fns';
 
 const TYPE_COLORS = {
   Checkup:    'bg-emerald-100 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300',
@@ -18,9 +17,8 @@ const TYPE_COLORS = {
 export default function Schedules({ doctor = {} }) {
   const [schedules, setSchedules] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedDay, setSelectedDay] = useState('Mon');
-  // Each day can have multiple time slots - represented as { time, task, type }
-  const [timeSlots, setTimeSlots] = useState([{ time: '09:00', task: '', type: 'Checkup' }]);
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [timeSlots, setTimeSlots] = useState([{ start_time: '09:00', end_time: '10:00', task: '', type: 'Checkup' }]);
   const [saving, setSaving] = useState(false);
 
   const fetchSchedules = async () => {
@@ -41,7 +39,7 @@ export default function Schedules({ doctor = {} }) {
   }, []);
 
   const addTimeSlot = () => {
-    setTimeSlots((prev) => [...prev, { time: '10:00', task: '', type: 'Checkup' }]);
+    setTimeSlots((prev) => [...prev, { start_time: '10:00', end_time: '11:00', task: '', type: 'Checkup' }]);
   };
 
   const removeTimeSlot = (idx) => {
@@ -61,15 +59,15 @@ export default function Schedules({ doctor = {} }) {
         await createSchedule({
           title: slot.task,
           day: selectedDay,
-          start_time: slot.time,
-          end_time: slot.time,
+          schedule_date: selectedDate,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
           type: slot.type,
-          schedule_date: new Date().toISOString().split('T')[0]
         });
       }
       await fetchSchedules();
       setShowAddModal(false);
-      setTimeSlots([{ time: '09:00', task: '', type: 'Checkup' }]);
+      setTimeSlots([{ start_time: '09:00', end_time: '10:00', task: '', type: 'Checkup' }]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -77,11 +75,8 @@ export default function Schedules({ doctor = {} }) {
     }
   };
 
-  // Group schedules by day
-  const schedulesByDay = DAYS.reduce((acc, day) => {
-    acc[day] = schedules.filter((s) => s.day === day);
-    return acc;
-  }, {});
+  const scheduleDays = Array.from({ length: 30 }, (_, index) => addDays(new Date(), index));
+  const schedulesByDate = (date) => schedules.filter((s) => (s.schedule_date || s.date) === format(date, 'yyyy-MM-dd'));
 
   return (
     <div className="light-theme-page p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
@@ -91,7 +86,7 @@ export default function Schedules({ doctor = {} }) {
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Clinical Schedule Manager</h2>
           <p className="text-xs text-slate-500 dark:text-[#71717a] font-medium mt-1">
-            Organize your weekly schedule — surgeries, consultations, and ward evaluations
+            Organize the next 30 days of surgeries, consultations, and ward evaluations
           </p>
         </div>
         <button
@@ -106,30 +101,33 @@ export default function Schedules({ doctor = {} }) {
       {/* Weekly Grid */}
       <div className="bg-white dark:bg-[#111318] rounded-2xl border border-slate-100 dark:border-[#1f2028] shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-100 dark:border-[#1f2028]">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Weekly Schedule</h3>
-          <p className="text-xs text-slate-400 dark:text-[#52525b] mt-0.5">All scheduled tasks for each day of the week</p>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">30-Day Schedule</h3>
+          <p className="text-xs text-slate-400 dark:text-[#52525b] mt-0.5">All scheduled tasks for each date</p>
         </div>
 
         <div className="divide-y divide-slate-50 dark:divide-[#1f2028]">
-          {DAYS.map((day) => (
-            <div key={day} className="flex items-start gap-6 px-6 py-4 hover:bg-slate-50/50 dark:hover:bg-[#16181f] transition-colors">
+          {scheduleDays.map((date) => {
+            const dateSchedules = schedulesByDate(date);
+            return (
+            <div key={format(date, 'yyyy-MM-dd')} className="flex items-start gap-6 px-6 py-4 hover:bg-slate-50/50 dark:hover:bg-[#16181f] transition-colors">
               {/* Day label */}
               <div className="w-12 shrink-0 pt-1">
-                <span className="text-xs font-bold text-slate-400 dark:text-[#52525b]">{day}</span>
+                <span className="text-xs font-bold text-slate-500 dark:text-[#52525b]">{format(date, 'EEE')}</span>
+                <span className="text-[10px] text-slate-400 dark:text-[#52525b]">{format(date, 'MMM d')}</span>
               </div>
 
               {/* Schedule items for this day */}
               <div className="flex flex-wrap gap-2 flex-1">
-                {schedulesByDay[day].length === 0 ? (
+                {dateSchedules.length === 0 ? (
                   <span className="text-[11px] text-slate-300 dark:text-[#3f3f46] italic">No tasks scheduled</span>
                 ) : (
-                  schedulesByDay[day].map((s) => (
+                  dateSchedules.map((s) => (
                     <div
                       key={s.id}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[11px] font-bold shadow-sm ${TYPE_COLORS[s.type] || TYPE_COLORS.Other}`}
                     >
                       <Clock className="w-3 h-3 opacity-70" />
-                      <span>{s.start_time}</span>
+                      <span>{s.start_time} - {s.end_time}</span>
                       <span className="w-px h-3 bg-current opacity-30" />
                       <span>{s.title}</span>
                     </div>
@@ -140,16 +138,17 @@ export default function Schedules({ doctor = {} }) {
               {/* Add quick-task button */}
               <button
                 onClick={() => {
-                  setSelectedDay(day);
+                  setSelectedDate(format(date, 'yyyy-MM-dd'));
                   setShowAddModal(true);
                 }}
                 className="shrink-0 w-7 h-7 rounded-lg border-2 border-dashed border-slate-200 dark:border-[#27272a] text-slate-300 dark:text-[#3f3f46] hover:border-blue-400 hover:text-blue-500 transition-colors flex items-center justify-center"
-                title={`Add task for ${day}`}
+                title={`Add task for ${format(date, 'MMM d')}`}
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -177,25 +176,10 @@ export default function Schedules({ doctor = {} }) {
             </div>
 
             <form onSubmit={handleAddSchedule} className="space-y-5 text-xs">
-              {/* Day selector */}
+              {/* Date selector */}
               <div>
-                <label className="block font-bold text-slate-700 dark:text-[#a1a1aa] uppercase mb-2">Select Day</label>
-                <div className="flex flex-wrap gap-2">
-                  {DAYS.map((d) => (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => setSelectedDay(d)}
-                      className={`px-3.5 py-2 rounded-xl font-bold transition-all ${
-                        selectedDay === d
-                          ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                          : 'bg-slate-100 dark:bg-[#1c1e26] text-slate-600 dark:text-[#a1a1aa] hover:bg-slate-200 dark:hover:bg-[#27272a]'
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
+                <label className="block font-bold text-slate-700 dark:text-[#a1a1aa] uppercase mb-2">Select Date</label>
+                <input type="date" value={selectedDate} min={format(new Date(), 'yyyy-MM-dd')} max={format(addDays(new Date(), 29), 'yyyy-MM-dd')} onChange={(e) => setSelectedDate(e.target.value)} className="w-full bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#1f2028] rounded-xl p-3 text-xs text-slate-800 dark:text-white font-medium focus:outline-none" />
               </div>
 
               {/* Time Slots */}
@@ -223,10 +207,12 @@ export default function Schedules({ doctor = {} }) {
                       {/* Time input */}
                       <input
                         type="time"
-                        value={slot.time}
-                        onChange={(e) => updateSlot(idx, 'time', e.target.value)}
+                        value={slot.start_time}
+                        onChange={(e) => updateSlot(idx, 'start_time', e.target.value)}
                         className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#1f2028] rounded-lg px-2 py-1.5 text-xs font-mono text-slate-800 dark:text-white w-28 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       />
+
+                        <input type="time" value={slot.end_time} onChange={(e) => updateSlot(idx, 'end_time', e.target.value)} className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#1f2028] rounded-lg px-2 py-1.5 text-xs font-mono text-slate-800 dark:text-white w-28 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
 
                       {/* Task input */}
                       <input
@@ -267,7 +253,7 @@ export default function Schedules({ doctor = {} }) {
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
               >
                 <CheckSquare2 className="w-4 h-4" />
-                {saving ? 'Saving to Supabase...' : `Add to ${selectedDay} Schedule`}
+                {saving ? 'Saving to Supabase...' : `Add to ${format(new Date(`${selectedDate}T00:00:00`), 'MMM d')} Schedule`}
               </button>
             </form>
           </div>
