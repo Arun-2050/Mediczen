@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 @layer base {
-  /* ─── LIGHT MODE  (Wix-style: clean whites, warm grays) ─── */
+  /* ─── LIGHT MODE ─── */
   body {
-    background-color: #f0f2f5;
-    color: #111827;
+    background-color: #ffffff;
+    color: #000000;
     font-family: 'Plus Jakarta Sans', sans-serif;
     transition: background-color 0.25s ease, color 0.25s ease;
   }
@@ -17,6 +17,51 @@
     color: #e4e4e7;
   }
 }
+
+  /* Light section surfaces keep controls readable without changing dark mode or dashboard widgets. */
+  html:not(.dark) .light-theme-page,
+  html:not(.dark) .light-theme-modal {
+    color: #000000;
+  }
+
+  html:not(.dark) .light-theme-page .bg-slate-50,
+  html:not(.dark) .light-theme-page .bg-slate-100,
+  html:not(.dark) .light-theme-modal .bg-slate-50,
+  html:not(.dark) .light-theme-modal .bg-slate-100 {
+    background-color: #ffffff;
+  }
+
+  html:not(.dark) .light-theme-page .text-slate-300,
+  html:not(.dark) .light-theme-page .text-slate-400,
+  html:not(.dark) .light-theme-page .text-slate-500,
+  html:not(.dark) .light-theme-page .text-slate-600,
+  html:not(.dark) .light-theme-page .text-slate-700,
+  html:not(.dark) .light-theme-page .text-slate-800,
+  html:not(.dark) .light-theme-page .text-slate-900,
+  html:not(.dark) .light-theme-modal .text-slate-300,
+  html:not(.dark) .light-theme-modal .text-slate-400,
+  html:not(.dark) .light-theme-modal .text-slate-500,
+  html:not(.dark) .light-theme-modal .text-slate-600,
+  html:not(.dark) .light-theme-modal .text-slate-700,
+  html:not(.dark) .light-theme-modal .text-slate-800,
+  html:not(.dark) .light-theme-modal .text-slate-900 {
+    color: #000000;
+  }
+
+  html:not(.dark) .light-theme-menu {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  html:not(.dark) .light-theme-menu .text-slate-300,
+  html:not(.dark) .light-theme-menu .text-slate-400,
+  html:not(.dark) .light-theme-menu .text-slate-500,
+  html:not(.dark) .light-theme-menu .text-slate-600,
+  html:not(.dark) .light-theme-menu .text-slate-700,
+  html:not(.dark) .light-theme-menu .text-slate-800,
+  html:not(.dark) .light-theme-menu .text-slate-900 {
+    color: #000000;
+  }
 
 /* ─── Custom Scrollbars ─── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

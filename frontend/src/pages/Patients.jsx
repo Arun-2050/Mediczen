@@ -93,7 +93,7 @@ export default function Patients({ doctor = {} }) {
   // 'recent' = default order from Supabase (already ordered by created_at desc in API)
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="light-theme-page p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
       <Header doctor={doctor} searchVal={searchVal} setSearchVal={setSearchVal} />
 
       <div className="bg-white dark:bg-[#111318] rounded-3xl p-6 sm:p-8 border border-slate-100 dark:border-[#1f2028] shadow-sm">

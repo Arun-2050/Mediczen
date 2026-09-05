@@ -59,7 +59,7 @@ export default function PatientTable({
               </button>
 
               {showSortDropdown && (
-                <div className="absolute right-0 top-10 w-44 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-xl p-1 z-30 space-y-1 text-xs">
+                <div className="light-theme-menu absolute right-0 top-10 w-44 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-xl p-1 z-30 space-y-1 text-xs">
                   {['Recent', 'A - Z', 'Z - A', 'Priority High', 'Priority Low'].map((opt) => (
                     <button
                       key={opt}

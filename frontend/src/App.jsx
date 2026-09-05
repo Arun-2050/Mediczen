@@ -85,7 +85,7 @@ export default function App() {
   }
 
   return (
-    <div className={`flex min-h-screen font-sans transition-colors duration-200 ${darkMode ? 'bg-[#0d0f12] text-[#e4e4e7]' : 'bg-[#f0f2f5] text-[#111827]'}`}>
+    <div className={`flex min-h-screen font-sans transition-colors duration-200 ${darkMode ? 'bg-[#0d0f12] text-[#e4e4e7]' : 'bg-white text-black'}`}>
       <Sidebar
         doctor={doctor}
         activeSeconds={activeSeconds}

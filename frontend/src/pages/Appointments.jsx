@@ -43,7 +43,7 @@ export default function Appointments({
   );
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="light-theme-page p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
       <Header doctor={doctor} searchVal={searchVal} setSearchVal={setSearchVal} />
 
       {/* Month Filter Active Banner */}

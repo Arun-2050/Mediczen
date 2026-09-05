@@ -96,7 +96,7 @@ export default function Sidebar({ activeSeconds = 0, setActiveSeconds = () => {}
           {/* Main */}
           <div>
             {!collapsed && (
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#52525b] mb-3 px-3">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-[#52525b] mb-3 px-3">
                 MAIN
               </p>
             )}
@@ -111,7 +111,7 @@ export default function Sidebar({ activeSeconds = 0, setActiveSeconds = () => {}
                     className={`flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
                       isActive
                         ? 'bg-blue-50 dark:bg-[#1a2035] text-blue-600 dark:text-[#4ade80] font-semibold shadow-sm'
-                        : 'text-slate-500 dark:text-[#71717a] hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#1c1e26]'
+                        : 'text-black dark:text-[#71717a] hover:text-black dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#1c1e26]'
                     }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600 dark:text-[#4ade80]' : 'text-slate-400 dark:text-[#52525b]'}`} />
@@ -125,7 +125,7 @@ export default function Sidebar({ activeSeconds = 0, setActiveSeconds = () => {}
           {/* Support */}
           <div>
             {!collapsed && (
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#52525b] mb-3 px-3">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-black dark:text-[#52525b] mb-3 px-3">
                 SUPPORT
               </p>
             )}
@@ -140,7 +140,7 @@ export default function Sidebar({ activeSeconds = 0, setActiveSeconds = () => {}
                     className={`flex items-center gap-3 px-3.5 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
                       isActive
                         ? 'bg-blue-50 dark:bg-[#1a2035] text-blue-600 dark:text-[#4ade80] font-semibold shadow-sm'
-                        : 'text-slate-500 dark:text-[#71717a] hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#1c1e26]'
+                        : 'text-black dark:text-[#71717a] hover:text-black dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#1c1e26]'
                     }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? 'text-blue-600 dark:text-[#4ade80]' : 'text-slate-400 dark:text-[#52525b]'}`} />

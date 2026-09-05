@@ -71,7 +71,7 @@ export default function Settings({ doctor = {}, setDoctor = () => {}, activeSeco
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="light-theme-page p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
       {/* Header (Search bar hidden automatically via location.pathname === '/settings') */}
       <Header doctor={doctor} activeSeconds={activeSeconds} />
 

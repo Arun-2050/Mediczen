@@ -84,7 +84,7 @@ export default function Schedules({ doctor = {} }) {
   }, {});
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+    <div className="light-theme-page p-6 md:p-8 max-w-[1600px] mx-auto min-h-screen">
       <Header doctor={doctor} />
 
       <div className="flex items-center justify-between mb-6">
@@ -155,7 +155,7 @@ export default function Schedules({ doctor = {} }) {
 
       {/* ─── Add Schedule Modal ─── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="light-theme-modal fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#111318] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-[#1f2028] max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#1f2028] mb-6">

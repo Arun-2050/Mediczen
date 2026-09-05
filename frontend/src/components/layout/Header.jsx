@@ -62,12 +62,12 @@ export default function Header({
     <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 relative">
       {/* Dynamic Greeting */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-2xl font-bold text-black dark:text-white tracking-tight">
           {getGreeting()}, {doctor?.full_name || 'Doctor'}!
         </h1>
-        <p className="text-sm text-slate-500 dark:text-[#71717a] font-medium mt-1">
+        <p className="text-sm text-black dark:text-[#71717a] font-medium mt-1">
           I hope you're in a good mood because there are{' '}
-          <span className="font-semibold text-slate-700 dark:text-[#a1a1aa]">{livePatientCount} patients</span> waiting for you
+          <span className="font-semibold text-black dark:text-[#a1a1aa]">{livePatientCount} patients</span> waiting for you
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export default function Header({
           </div>
 
           {showProfileMenu && (
-            <div className="absolute right-0 top-14 w-80 bg-white dark:bg-[#16181f] border border-slate-100 dark:border-[#1f2028] rounded-2xl shadow-2xl p-5 z-50 space-y-4">
+            <div className="light-theme-menu absolute right-0 top-14 w-80 bg-white dark:bg-[#16181f] border border-slate-100 dark:border-[#1f2028] rounded-2xl shadow-2xl p-5 z-50 space-y-4">
               <div className="flex items-center gap-4 pb-4 border-b border-slate-100 dark:border-[#1f2028]">
                 <img
                   src={doctor?.avatar_url || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150'}
