@@ -19,7 +19,17 @@ export default function Login({ setDoctor = () => {} }) {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarUrl(reader.result);
+        const image = new Image();
+        image.onload = () => {
+          const maxSize = 256;
+          const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+          canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+          setAvatarUrl(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        image.src = reader.result;
       };
       reader.readAsDataURL(file);
     }
