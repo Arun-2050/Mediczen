@@ -1,0 +1,141 @@
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import Sidebar from './components/layout/Sidebar';
+import LandingPage from './pages/LandingPage';
+import Dashboard from './pages/Dashboard';
+import Patients from './pages/Patients';
+import Schedules from './pages/Schedules';
+import Appointments from './pages/Appointments';
+import Billing from './pages/Billing';
+import HelpCenter from './pages/HelpCenter';
+import Settings from './pages/Settings';
+import PatientPortal from './pages/PatientPortal';
+import Login from './pages/Login';
+import { updateDoctorActiveTime } from './services/api';
+import { supabase } from './services/supabaseClient';
+
+export default function App() {
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('mediczen_theme') === 'dark';
+  });
+  const [doctor, setDoctor] = useState(() => {
+    const saved = localStorage.getItem('mediczen_doctor');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  // Timer always starts from 0 on fresh login — only accumulated total from Supabase is shown in Settings
+  const [activeSeconds, setActiveSeconds] = useState(0);
+  const [monthFilter, setMonthFilter] = useState(null);
+  const [monthFilterLabel, setMonthFilterLabel] = useState('');
+  const [hasUnreadAppointments, setHasUnreadAppointments] = useState(true);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Persist theme preference
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('mediczen_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('mediczen_theme', 'light');
+    }
+  }, [darkMode]);
+
+  // Reset timer to 0 whenever a new doctor logs in
+  useEffect(() => {
+    if (doctor?.id) {
+      setActiveSeconds(0);
+    }
+  }, [doctor?.id]);
+
+  const handleLogout = async () => {
+    // Save current session seconds to Supabase before logging out
+    if (doctor?.id && activeSeconds > 0) {
+      await updateDoctorActiveTime(doctor.id, activeSeconds);
+    }
+    localStorage.removeItem('mediczen_doctor');
+    await supabase.auth.signOut();
+    setDoctor(null);
+    setActiveSeconds(0);
+    navigate('/login');
+  };
+
+  const handleSelectMonthFilter = (monthStr, monthLabel) => {
+    setMonthFilter(monthStr);
+    setMonthFilterLabel(monthLabel);
+  };
+
+  const handleResetMonthFilter = () => {
+    setMonthFilter(null);
+    setMonthFilterLabel('');
+  };
+
+  const isPublicPage = location.pathname === '/' || location.pathname === '/login' || location.pathname.startsWith('/portal');
+
+  if (isPublicPage) {
+    return (
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login setDoctor={setDoctor} />} />
+        <Route path="/portal/:token" element={<PatientPortal />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <div className={`flex min-h-screen font-sans transition-colors duration-200 ${darkMode ? 'bg-[#0d0f12] text-[#e4e4e7]' : 'bg-[#f0f2f5] text-[#111827]'}`}>
+      <Sidebar
+        doctor={doctor}
+        activeSeconds={activeSeconds}
+        setActiveSeconds={setActiveSeconds}
+        onLogout={handleLogout}
+      />
+      <main className="flex-1 overflow-x-hidden">
+        <Routes>
+          <Route
+            path="/dashboard"
+            element={
+              <Dashboard
+                doctor={doctor}
+                activeSeconds={activeSeconds}
+                onLogout={handleLogout}
+                onSelectMonthFilter={handleSelectMonthFilter}
+                hasUnreadAppointments={hasUnreadAppointments}
+                setHasUnreadAppointments={setHasUnreadAppointments}
+              />
+            }
+          />
+          <Route path="/patients" element={<Patients doctor={doctor} />} />
+          <Route path="/schedules" element={<Schedules doctor={doctor} />} />
+          <Route
+            path="/appointments"
+            element={
+              <Appointments
+                doctor={doctor}
+                monthFilter={monthFilter}
+                monthFilterLabel={monthFilterLabel}
+                onResetMonthFilter={handleResetMonthFilter}
+              />
+            }
+          />
+          <Route path="/billing" element={<Billing doctor={doctor} />} />
+          <Route path="/help" element={<HelpCenter doctor={doctor} />} />
+          <Route
+            path="/settings"
+            element={
+              <Settings
+                doctor={doctor}
+                setDoctor={setDoctor}
+                activeSeconds={activeSeconds}
+                darkMode={darkMode}
+                setDarkMode={setDarkMode}
+              />
+            }
+          />
+        </Routes>
+      </main>
+    </div>
+  );
+}
