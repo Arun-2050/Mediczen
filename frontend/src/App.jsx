@@ -67,6 +67,12 @@ export default function App() {
       if (totalActiveSeconds !== null) {
         activeSecondsRef.current = Math.max(0, activeSecondsRef.current - secondsToSave);
         setActiveSeconds((current) => Math.max(0, current - secondsToSave));
+        setDoctor((currentDoctor) => {
+          if (!currentDoctor) return currentDoctor;
+          const updatedDoctor = { ...currentDoctor, active_seconds: totalActiveSeconds };
+          localStorage.setItem('mediczen_doctor', JSON.stringify(updatedDoctor));
+          return updatedDoctor;
+        });
       }
     };
     const intervalId = window.setInterval(checkpoint, 60 * 1000);

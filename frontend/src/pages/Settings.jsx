@@ -30,6 +30,10 @@ export default function Settings({ doctor = {}, setDoctor = () => {}, activeSeco
     return () => supabase.removeChannel(channel);
   }, [doctor?.id]);
 
+  useEffect(() => {
+    if (doctor?.id) setSavedActiveSeconds(doctor.active_seconds || 0);
+  }, [doctor?.id, doctor?.active_seconds]);
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
