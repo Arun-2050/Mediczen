@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './components/layout/Sidebar';
 import LandingPage from './pages/LandingPage';
@@ -25,6 +25,7 @@ export default function App() {
 
   // Timer always starts from 0 on fresh login — only accumulated total from Supabase is shown in Settings
   const [activeSeconds, setActiveSeconds] = useState(0);
+  const activeSecondsRef = useRef(0);
   const [monthFilter, setMonthFilter] = useState(null);
   const [monthFilterLabel, setMonthFilterLabel] = useState('');
   const [appointmentDateFilter, setAppointmentDateFilter] = useState(null);
@@ -48,13 +49,35 @@ export default function App() {
   useEffect(() => {
     if (doctor?.id) {
       setActiveSeconds(0);
+      activeSecondsRef.current = 0;
     }
+  }, [doctor?.id]);
+
+  useEffect(() => {
+    activeSecondsRef.current = activeSeconds;
+  }, [activeSeconds]);
+
+  // Persist session checkpoints so a reload or unexpected tab close does not lose time.
+  useEffect(() => {
+    if (!doctor?.id) return undefined;
+    const checkpoint = async () => {
+      const secondsToSave = activeSecondsRef.current;
+      if (secondsToSave <= 0) return;
+      const totalActiveSeconds = await updateDoctorActiveTime(doctor.id, secondsToSave);
+      if (totalActiveSeconds !== null) {
+        activeSecondsRef.current = Math.max(0, activeSecondsRef.current - secondsToSave);
+        setActiveSeconds((current) => Math.max(0, current - secondsToSave));
+      }
+    };
+    const intervalId = window.setInterval(checkpoint, 60 * 1000);
+    return () => window.clearInterval(intervalId);
   }, [doctor?.id]);
 
   const handleLogout = async () => {
     // Save current session seconds to Supabase before logging out
-    if (doctor?.id && activeSeconds > 0) {
-      const totalActiveSeconds = await updateDoctorActiveTime(doctor.id, activeSeconds);
+    const secondsToSave = activeSecondsRef.current;
+    if (doctor?.id && secondsToSave > 0) {
+      const totalActiveSeconds = await updateDoctorActiveTime(doctor.id, secondsToSave);
       if (totalActiveSeconds !== null) {
         const updatedDoctor = { ...doctor, active_seconds: totalActiveSeconds };
         localStorage.setItem('mediczen_doctor', JSON.stringify(updatedDoctor));
