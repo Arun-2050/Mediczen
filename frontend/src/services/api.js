@@ -73,14 +73,22 @@ export const updateDoctorProfile = async (doctorId, updates) => {
 };
 
 export const updateDoctorActiveTime = async (doctorId, sessionSeconds) => {
-  if (!doctorId) return;
+  if (!doctorId || sessionSeconds <= 0) return null;
   try {
     const { data: currDoc } = await supabase.from('doctors').select('active_seconds').eq('id', doctorId).single();
     const currTotal = currDoc ? (currDoc.active_seconds || 0) : 0;
     const newTotal = currTotal + sessionSeconds;
-    await supabase.from('doctors').update({ active_seconds: newTotal }).eq('id', doctorId);
+    const { data, error } = await supabase
+      .from('doctors')
+      .update({ active_seconds: newTotal })
+      .eq('id', doctorId)
+      .select('active_seconds')
+      .single();
+    if (error) throw error;
+    return data.active_seconds;
   } catch (err) {
     console.error('Failed to save session active time:', err);
+    return null;
   }
 };
 

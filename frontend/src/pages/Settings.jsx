@@ -14,6 +14,7 @@ export default function Settings({ doctor = {}, setDoctor = () => {}, activeSeco
   // Fetch saved total active time from Supabase in real time
   useEffect(() => {
     if (!doctor?.id) return;
+    setSavedActiveSeconds(doctor.active_seconds || 0);
     const fetchSavedTime = async () => {
       const { data } = await supabase.from('doctors').select('active_seconds').eq('id', doctor.id).single();
       if (data) setSavedActiveSeconds(data.active_seconds || 0);

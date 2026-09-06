@@ -54,7 +54,11 @@ export default function App() {
   const handleLogout = async () => {
     // Save current session seconds to Supabase before logging out
     if (doctor?.id && activeSeconds > 0) {
-      await updateDoctorActiveTime(doctor.id, activeSeconds);
+      const totalActiveSeconds = await updateDoctorActiveTime(doctor.id, activeSeconds);
+      if (totalActiveSeconds !== null) {
+        const updatedDoctor = { ...doctor, active_seconds: totalActiveSeconds };
+        localStorage.setItem('mediczen_doctor', JSON.stringify(updatedDoctor));
+      }
     }
     localStorage.removeItem('mediczen_doctor');
     await supabase.auth.signOut();

@@ -24,7 +24,8 @@ const provisionDoctor = async (user, details = {}) => {
     email: user.email,
     full_name: details.full_name || user.user_metadata?.full_name || 'Dr. Medical',
     specialty: details.specialty || user.user_metadata?.specialty || 'General Medicine',
-    avatar_url: details.avatar_url || user.user_metadata?.avatar_url || null
+    avatar_url: details.avatar_url || user.user_metadata?.avatar_url || null,
+    active_seconds: 0
   }]).select().single();
   if (profileError || !doctor) throw profileError || new Error('Could not create doctor profile.');
 
