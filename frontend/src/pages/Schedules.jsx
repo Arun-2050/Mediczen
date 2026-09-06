@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
-import { getSchedules, createSchedule } from '../services/api';
+import { getSchedules, createSchedule, deleteSchedule } from '../services/api';
 import { supabase } from '../services/supabaseClient';
 import { Plus, X, Clock, CalendarDays, CheckSquare2, Trash2 } from 'lucide-react';
 import { addDays, format } from 'date-fns';
@@ -74,6 +74,11 @@ export default function Schedules({ doctor = {} }) {
     }
   };
 
+  const handleDeleteSchedule = async (scheduleId) => {
+    const deleted = await deleteSchedule(scheduleId);
+    if (deleted) setSchedules((current) => current.filter((schedule) => schedule.id !== scheduleId));
+  };
+
   const scheduleDays = Array.from({ length: 30 }, (_, index) => addDays(new Date(), index));
   const schedulesByDate = (date) => schedules.filter((s) => (s.schedule_date || s.date) === format(date, 'yyyy-MM-dd'));
 
@@ -123,12 +128,20 @@ export default function Schedules({ doctor = {} }) {
                   dateSchedules.map((s) => (
                     <div
                       key={s.id}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[11px] font-bold shadow-sm ${TYPE_COLORS[s.type] || TYPE_COLORS.Other}`}
+                      className={`group relative flex items-center gap-2 px-3 py-1.5 pr-8 rounded-xl border text-[11px] font-bold shadow-sm ${TYPE_COLORS[s.type] || TYPE_COLORS.Other}`}
                     >
                       <Clock className="w-3 h-3 opacity-70" />
                       <span>{s.start_time} - {s.end_time}</span>
                       <span className="w-px h-3 bg-current opacity-30" />
                       <span>{s.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSchedule(s.id)}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded-md bg-rose-600 text-white shadow-sm transition-opacity hover:bg-rose-700"
+                        title="Delete scheduled task"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
                     </div>
                   ))
                 )}

@@ -31,8 +31,8 @@ export default function StatCards({
       bars: [50, 70, 85, 45, 90, 100]
     },
     {
-      id: 'ambulans',
-      title: 'Ambulans',
+      id: 'ambulances',
+      title: 'Ambulances',
       count: availableAmbulances,
       subtitle: 'Available ambulance',
       icon: Truck,

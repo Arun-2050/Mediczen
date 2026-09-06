@@ -24,9 +24,7 @@ export default function CalendarWidget({ appointments = [], onSelectMonthFilter 
 
   const hasAppointment = (day) => {
     const formattedDay = format(day, 'yyyy-MM-dd');
-    return appointments.some(
-      (apt) => apt.appointment_date === formattedDay || (apt.created_at && apt.created_at.startsWith(formattedDay))
-    );
+    return appointments.some((apt) => apt.appointment_date === formattedDay);
   };
 
   const handleMonthFilterClick = () => {
