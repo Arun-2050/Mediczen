@@ -343,8 +343,8 @@ export const createInvoice = async (invoiceData) => {
     items: invoiceData.items || [{ description: 'General Consultation', qty: 1, price: 150 }],
     total_amount: parseFloat(invoiceData.total_amount) || 150.00,
     status: invoiceData.status || 'Pending',
-    issued_date: new Date().toISOString().split('T')[0],
-    due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    issued_date: invoiceData.issued_date || new Date().toISOString().split('T')[0],
+    due_date: invoiceData.due_date || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   };
 
   try {

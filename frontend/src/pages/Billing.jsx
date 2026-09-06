@@ -12,6 +12,9 @@ export default function Billing({ doctor = {} }) {
   const [wardNo, setWardNo] = useState('#123456');
   const [description, setDescription] = useState('Doctor Clinical Consultation Fee');
   const [amount, setAmount] = useState('250.00');
+  const [issuedDate, setIssuedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+  const [status, setStatus] = useState('Pending');
   const [loading, setLoading] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
 
@@ -43,6 +46,9 @@ export default function Billing({ doctor = {} }) {
     setWardNo(invoice.ward_no || '');
     setDescription(invoice.items?.[0]?.description || 'Medical Service');
     setAmount(String(invoice.total_amount || '0'));
+    setIssuedDate(invoice.issued_date || new Date().toISOString().split('T')[0]);
+    setDueDate(invoice.due_date || new Date().toISOString().split('T')[0]);
+    setStatus(invoice.status || 'Pending');
     setIsCreateOpen(true);
   };
 
@@ -54,7 +60,10 @@ export default function Billing({ doctor = {} }) {
         patient_name: patientName,
         ward_no: wardNo,
         items: [{ description, qty: 1, price: parseFloat(amount) }],
-        total_amount: parseFloat(amount)
+        total_amount: parseFloat(amount),
+        issued_date: issuedDate,
+        due_date: dueDate,
+        status
       };
       if (editingInvoice) await updateInvoice(editingInvoice.id, payload);
       else await createInvoice({ ...payload, status: 'Pending' });
@@ -89,7 +98,17 @@ export default function Billing({ doctor = {} }) {
           <p className="text-xs text-slate-500 dark:text-[#71717a] font-medium mt-1">Hospital treatment invoices and patient payment tracking</p>
         </div>
         <button
-          onClick={() => setIsCreateOpen(true)}
+          onClick={() => {
+            setEditingInvoice(null);
+            setPatientName('');
+            setWardNo('#123456');
+            setDescription('Doctor Clinical Consultation Fee');
+            setAmount('250.00');
+            setIssuedDate(new Date().toISOString().split('T')[0]);
+            setDueDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+            setStatus('Pending');
+            setIsCreateOpen(true);
+          }}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-md shadow-blue-500/20"
         >
           <Plus className="w-4 h-4" />
@@ -180,7 +199,7 @@ export default function Billing({ doctor = {} }) {
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Create Patient Invoice</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingInvoice ? 'Edit Patient Invoice' : 'Create Patient Invoice'}</h3>
                   <p className="text-xs text-slate-400 dark:text-[#71717a] font-medium">Generate medical bill saved to Supabase</p>
                 </div>
               </div>
@@ -225,6 +244,25 @@ export default function Billing({ doctor = {} }) {
                 </div>
               </div>
 
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-[#a1a1aa] uppercase mb-1">Issued Date</label>
+                  <input type="date" value={issuedDate} onChange={(e) => setIssuedDate(e.target.value)} className="w-full bg-slate-50 dark:bg-[#16181f] border border-slate-200 dark:border-[#1f2028] rounded-xl p-3 text-slate-800 dark:text-white font-medium" />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-[#a1a1aa] uppercase mb-1">Due Date</label>
+                  <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full bg-slate-50 dark:bg-[#16181f] border border-slate-200 dark:border-[#1f2028] rounded-xl p-3 text-slate-800 dark:text-white font-medium" />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 dark:text-[#a1a1aa] uppercase mb-1">Status</label>
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-slate-50 dark:bg-[#16181f] border border-slate-200 dark:border-[#1f2028] rounded-xl p-3 text-slate-800 dark:text-white font-medium">
+                    <option>Pending</option>
+                    <option>Paid</option>
+                    <option>Overdue</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block font-bold text-slate-700 dark:text-[#a1a1aa] uppercase mb-1">Medical Item Description</label>
                 <input
@@ -240,7 +278,7 @@ export default function Billing({ doctor = {} }) {
                 disabled={loading}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Generate & Save Invoice'}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : editingInvoice ? 'Save Invoice Changes' : 'Generate & Save Invoice'}
               </button>
             </form>
           </div>

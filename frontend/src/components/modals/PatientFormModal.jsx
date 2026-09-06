@@ -29,7 +29,7 @@ export default function PatientFormModal({ onClose = () => {}, onRefresh = () =>
         priority,
         phone,
         email,
-        start_date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        start_date: appointmentDate,
         appointment_date: appointmentDate,
         appointment_time: appointmentTime,
         reason

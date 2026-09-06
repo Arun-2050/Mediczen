@@ -58,7 +58,6 @@ export default function Schedules({ doctor = {} }) {
         if (!slot.task.trim()) continue;
         await createSchedule({
           title: slot.task,
-          day: selectedDay,
           schedule_date: selectedDate,
           start_time: slot.start_time,
           end_time: slot.end_time,
@@ -155,7 +154,7 @@ export default function Schedules({ doctor = {} }) {
       {/* ─── Add Schedule Modal ─── */}
       {showAddModal && (
         <div className="light-theme-modal fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#111318] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-[#1f2028] max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-[#111318] rounded-3xl max-w-5xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-[#1f2028]">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-[#1f2028] mb-6">
               <div className="flex items-center gap-3">
@@ -233,15 +232,14 @@ export default function Schedules({ doctor = {} }) {
                       </select>
 
                       {/* Remove slot */}
-                      {timeSlots.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeTimeSlot(idx)}
-                          className="p-1 text-slate-300 dark:text-[#3f3f46] hover:text-rose-500 transition-colors shrink-0"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeTimeSlot(idx)}
+                        className="p-1 text-slate-300 dark:text-[#3f3f46] hover:text-rose-500 transition-colors shrink-0"
+                        title="Delete time slot"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
