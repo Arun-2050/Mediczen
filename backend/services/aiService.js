@@ -3,8 +3,46 @@ require('dotenv').config();
 
 let openai = null;
 if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('your-openai')) {
-  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim() });
 }
+
+const geminiApiKey = process.env.GEMINI_API_KEY?.trim();
+
+const requestGemini = async (prompt) => {
+  if (!geminiApiKey) return null;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 500 }
+        }),
+        signal: controller.signal
+      }
+    );
+
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(`Gemini request failed (${response.status}): ${details.slice(0, 300)}`);
+    }
+
+    const data = await response.json();
+    const content = data.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || '')
+      .join('')
+      .trim();
+    if (!content) throw new Error('Gemini returned an empty recommendation.');
+    return content;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 
 /**
  * Analyzes patient symptoms and vitals using AI (ChatGPT / OpenAI or intelligent fallback)
@@ -37,6 +75,13 @@ Keep it concise, clear, and professional. Add a disclaimer that this is AI decis
     } catch (error) {
       console.error('OpenAI API Error:', error.message);
     }
+  }
+
+  try {
+    const content = await requestGemini(prompt);
+    if (content) return `Source: Gemini clinical decision support\n\n${content}`;
+  } catch (error) {
+    console.error('Gemini API Error:', error.message);
   }
 
   const text = String(symptoms || '').toLowerCase();
