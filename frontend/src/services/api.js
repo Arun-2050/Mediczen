@@ -313,7 +313,8 @@ export const createSchedule = async (scheduleData) => {
 export const deleteSchedule = async (scheduleId) => {
   try {
     const doctorId = requireDoctorId();
-    await supabase.from('schedules').delete().eq('id', scheduleId).eq('doctor_id', doctorId);
+    const { error } = await supabase.from('schedules').delete().eq('id', scheduleId).eq('doctor_id', doctorId);
+    if (error) throw error;
     return true;
   } catch (err) {
     console.error('Delete schedule error:', err);

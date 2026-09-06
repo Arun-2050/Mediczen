@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Trash2 } from 'lucide-react';
 import { addDays, format, startOfMonth } from 'date-fns';
 
-export default function ScheduleTimeline({ schedules = [] }) {
+export default function ScheduleTimeline({ schedules = [], onDeleteSchedule = async () => {} }) {
   const [selectedWeek, setSelectedWeek] = useState('Week 1 (Days 1-7)');
   const [showWeekDropdown, setShowWeekDropdown] = useState(false);
 
@@ -81,8 +81,16 @@ export default function ScheduleTimeline({ schedules = [] }) {
                 <div className="font-bold text-slate-500 dark:text-slate-400">{format(day, 'EEE, MMM d')}</div>
                 <div className="flex flex-wrap gap-2">
                   {daySchedules.length ? daySchedules.map((schedule) => (
-                    <div key={schedule.id} className="bg-blue-100 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 rounded-xl px-3 py-2 font-bold text-[11px] shadow-sm">
+                    <div key={schedule.id} className="group relative bg-blue-100 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 rounded-xl px-3 py-2 pr-8 font-bold text-[11px] shadow-sm">
                       {schedule.start_time} - {schedule.end_time} {schedule.title}
+                      <button
+                        type="button"
+                        onClick={() => onDeleteSchedule(schedule.id)}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 rounded-md bg-rose-600 text-white shadow-sm transition-opacity hover:bg-rose-700"
+                        title="Delete scheduled task"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
                     </div>
                   )) : <span className="text-slate-300 dark:text-slate-600 italic">No tasks scheduled</span>}
                 </div>

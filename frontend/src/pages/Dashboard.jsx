@@ -7,7 +7,7 @@ import ScheduleTimeline from '../components/dashboard/ScheduleTimeline';
 import AIDiagnosisModal from '../components/modals/AIDiagnosisModal';
 import SharePortalModal from '../components/modals/SharePortalModal';
 import PatientFormModal from '../components/modals/PatientFormModal';
-import { getPatients, getSchedules, getAppointments, getHospitalStats, deletePatient } from '../services/api';
+import { getPatients, getSchedules, getAppointments, getHospitalStats, deletePatient, deleteSchedule } from '../services/api';
 import { supabase } from '../services/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
@@ -71,6 +71,11 @@ export default function Dashboard({
     await fetchDashboardData();
   };
 
+  const handleDeleteSchedule = async (id) => {
+    const deleted = await deleteSchedule(id);
+    if (deleted) await fetchDashboardData();
+  };
+
   const filteredPatients = patients.filter((p) =>
     p.full_name.toLowerCase().includes(searchVal.toLowerCase()) ||
     p.ward_no.toLowerCase().includes(searchVal.toLowerCase())
@@ -118,7 +123,7 @@ export default function Dashboard({
       </div>
 
       {/* Bottom Section: Schedule Timeline */}
-      <ScheduleTimeline schedules={schedules} />
+      <ScheduleTimeline schedules={schedules} onDeleteSchedule={handleDeleteSchedule} />
 
       {/* Modals */}
       {selectedPatientForAI && (
